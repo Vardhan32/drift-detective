@@ -21,6 +21,7 @@ from src.data_generator import (
 from src.drift_detector import DEFAULT_ALPHA, detect_drift
 from src.evaluation import compare_metrics, evaluate_model
 from src.model import get_feature_importance, split_data, train_model
+from src.params import ROW_MAX, ROW_MIN, resolve_params
 
 st.set_page_config(page_title="Drift Detective", layout="wide")
 
@@ -32,10 +33,15 @@ st.caption(
 )
 
 # ---------------- Sidebar controls ----------------
+# URL query params (e.g. ?scenario=severe&n_reference=500) preset the widgets;
+# invalid values fall back to defaults with a visible warning, never silently.
+url_params, param_warnings = resolve_params(dict(st.query_params))
+for _w in param_warnings:
+    st.warning(_w)
 with st.sidebar:
     st.header("Experiment controls")
-    _qp_scenario = str(st.query_params.get("scenario", "moderate")).lower()
-    _default_idx = {"normal": 0, "moderate": 1, "severe": 2}.get(_qp_scenario, 1)
+    _qp_scenario = url_params["scenario"]
+    _default_idx = {"normal": 0, "moderate": 1, "severe": 2}[_qp_scenario]
     scenario = st.selectbox(
         "Incoming-data scenario",
         options=["normal", "moderate", "severe"],
@@ -46,13 +52,20 @@ with st.sidebar:
         "Significance threshold (alpha)",
         min_value=0.005,
         max_value=0.10,
-        value=float(DEFAULT_ALPHA),
+        value=float(url_params["alpha"] or DEFAULT_ALPHA),
         step=0.005,
         help="Per-feature flag uses Benjamini-Hochberg adjusted p-values.",
     )
-    n_reference = st.slider("Reference rows", 300, 3000, 1000, step=100)
-    n_incoming = st.slider("Incoming rows", 300, 3000, 1000, step=100)
-    seed = st.number_input("Random seed", min_value=0, max_value=10_000, value=42, step=1)
+    n_reference = st.slider(
+        "Reference rows", ROW_MIN, ROW_MAX, int(url_params["n_reference"]), step=10
+    )
+    n_incoming = st.slider(
+        "Incoming rows", ROW_MIN, ROW_MAX, int(url_params["n_incoming"]), step=10
+    )
+    seed = st.number_input(
+        "Random seed", min_value=0, max_value=100_000,
+        value=int(url_params["seed"]), step=1,
+    )
     st.info(
         "Same label rule is applied to every dataset so the "
         "reference-vs-incoming accuracy comparison is like-for-like."
@@ -79,19 +92,33 @@ try:
     reference_df, incoming_df = _load_data(n_reference, n_incoming, scenario, seed)
 except Exception as exc:
     st.error(f"Data generation failed: {exc}")
+    st.info("Try lowering the row counts or picking another seed, then rerun.")
     st.stop()
 
 try:
     X_train, X_test, y_train, y_test = split_data(reference_df, random_state=int(seed))
 except Exception as exc:
     st.error(f"Train/test split failed: {exc}")
+    st.info(
+        "What to do next: with very few rows the sample can contain only one "
+        "class, which cannot be split. Increase Reference rows (100+ recommended) "
+        "or try another seed — no data was fabricated to fill the gap."
+    )
     st.stop()
 
-model = _train_cached(
-    tuple(map(tuple, X_train.to_numpy().tolist())),
-    tuple(y_train.tolist()),
-    int(seed),
-)
+try:
+    model = _train_cached(
+        tuple(map(tuple, X_train.to_numpy().tolist())),
+        tuple(y_train.tolist()),
+        int(seed),
+    )
+except Exception as exc:
+    st.error(f"Model training failed: {exc}")
+    st.info(
+        "What to do next: increase Reference rows or change the seed so the "
+        "training split contains both classes."
+    )
+    st.stop()
 
 try:
     ref_metrics = evaluate_model(model, X_test, y_test)
@@ -99,6 +126,10 @@ try:
     comparison_df = compare_metrics(ref_metrics, inc_metrics)
 except Exception as exc:
     st.error(f"Evaluation failed: {exc}")
+    st.info(
+        "What to do next: this usually means too few valid rows reached "
+        "evaluation. Increase Incoming rows (100+ recommended) and rerun."
+    )
     st.stop()
 
 try:
@@ -106,6 +137,11 @@ try:
     drift_table: pd.DataFrame = drift_out["results"]
 except Exception as exc:
     st.error(f"Drift detection failed: {exc}")
+    st.info(
+        "What to do next: each feature needs at least 10 valid (non-missing) "
+        "values on both sides. Increase the row counts and rerun rather than "
+        "trusting a result computed from almost no data."
+    )
     st.stop()
 
 try:
