@@ -33,6 +33,18 @@ check labelled metrics before concluding accuracy dropped:
 
 ![Drift Detective dashboard, moderate-drift scenario](docs/screenshots/scenario-moderate.png)
 
+Severe-drift scenario — drift in all 5 features:
+
+![Drift Detective dashboard, severe-drift scenario](docs/screenshots/scenario-severe.png)
+
+Per-feature drift table (severe scenario) — KS statistics, adjusted p-values,
+and effect sizes computed live:
+
+![Drift Detective per-feature drift table](docs/screenshots/drift-table-severe.png)
+
+Tip: the sidebar scenario can be preset with a URL parameter, e.g.
+`?scenario=severe`. Invalid values fall back to defaults with a visible warning.
+
 ## Architecture
 
 ```mermaid
@@ -62,16 +74,20 @@ drift-detective/
         model.py
         drift_detector.py
         evaluation.py
+        params.py
     tests/
         test_data_generator.py
         test_model.py
         test_drift_detector.py
         test_evaluation.py
+        test_params.py
     docs/
         methodology.md
         screenshots/
             scenario-normal.png
             scenario-moderate.png
+            scenario-severe.png
+            drift-table-severe.png
 ```
 
 ## Installation (Windows)
