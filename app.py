@@ -34,10 +34,12 @@ st.caption(
 # ---------------- Sidebar controls ----------------
 with st.sidebar:
     st.header("Experiment controls")
+    _qp_scenario = str(st.query_params.get("scenario", "moderate")).lower()
+    _default_idx = {"normal": 0, "moderate": 1, "severe": 2}.get(_qp_scenario, 1)
     scenario = st.selectbox(
         "Incoming-data scenario",
         options=["normal", "moderate", "severe"],
-        index=1,
+        index=_default_idx,
         help="normal ≈ reference; moderate = some features shifted; severe = many features shifted.",
     )
     alpha = st.slider(
@@ -195,6 +197,13 @@ for c in ["mean_reference", "mean_incoming", "std_reference", "std_incoming",
 st.dataframe(display, width="stretch", hide_index=True)
 
 st.markdown("**Distribution comparison (reference vs incoming)**")
+FEATURE_UNITS = {
+    "cpu_usage": "%",
+    "memory_usage": "%",
+    "disk_usage": "%",
+    "request_latency_ms": "ms",
+    "error_rate": "fraction",
+}
 tabs = st.tabs(FEATURE_COLUMNS)
 for tab, feat in zip(tabs, FEATURE_COLUMNS):
     with tab:
@@ -215,6 +224,7 @@ for tab, feat in zip(tabs, FEATURE_COLUMNS):
             opacity=0.55,
             nbins=40,
             title=f"{feat}: reference vs incoming ({scenario})",
+            labels={"value": f"{feat} ({FEATURE_UNITS[feat]})", "source": "dataset"},
         )
         st.plotly_chart(fig, width="stretch")
         row = drift_table.set_index("feature").loc[feat]

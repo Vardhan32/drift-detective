@@ -22,6 +22,17 @@ and compares labelled performance — in an interactive Streamlit dashboard.
 - pytest suite covering generator, model, detector, evaluation
 - Runs locally on a laptop; no APIs, GPU, or cloud needed
 
+## Screenshots
+
+Normal scenario — no drift flagged (0/5 features):
+
+![Drift Detective dashboard, normal scenario](docs/screenshots/scenario-normal.png)
+
+Moderate-drift scenario — drift detected (3/5 features), with the reminder to
+check labelled metrics before concluding accuracy dropped:
+
+![Drift Detective dashboard, moderate-drift scenario](docs/screenshots/scenario-moderate.png)
+
 ## Architecture
 
 ```mermaid
@@ -58,24 +69,24 @@ drift-detective/
         test_evaluation.py
     docs/
         methodology.md
+        screenshots/
+            scenario-normal.png
+            scenario-moderate.png
 ```
 
 ## Installation (Windows)
 
+Run all commands below from the `drift-detective/` folder. Requires Python 3.11 or newer.
+
 ```powershell
-cd drift-detective
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Requires Python 3.11 or newer.
-
 ## Run the dashboard
 
 ```powershell
-cd drift-detective
-.venv\Scripts\Activate.ps1
 streamlit run app.py
 ```
 
@@ -85,8 +96,6 @@ to switch scenarios, adjust alpha, rows, and seed.
 ## Run the tests
 
 ```powershell
-cd drift-detective
-.venv\Scripts\Activate.ps1
 pytest -v
 ```
 
