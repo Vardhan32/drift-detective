@@ -58,7 +58,6 @@ drift-detective/
         test_evaluation.py
     docs/
         methodology.md
-        interview_guide.md
 ```
 
 ## Installation (Windows)
@@ -109,8 +108,7 @@ pytest -v
 - A small adjusted p-value is evidence against "same distribution", not proof the
   model broke — confirm with the incoming accuracy panel.
 - Large samples flag tiny shifts; the |d| ≥ 0.2 gate keeps flags meaningful.
-- See `docs/methodology.md` for assumptions and `docs/interview_guide.md` for
-  talking points.
+- See `docs/methodology.md` for full assumptions and method details.
 
 ## Limitations
 
