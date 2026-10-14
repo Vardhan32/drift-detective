@@ -49,7 +49,9 @@ feature values in the same row.
   Random forests need no scaling; the imputer handles missing values. The pipeline
   is fitted on training data only.
 - Metrics from `sklearn.metrics` on actual predictions: accuracy, precision,
-  recall, F1 (`zero_division=0`), confusion matrix.
+  recall, F1 (`zero_division=0`), confusion matrix. The matrix is fixed to 2x2
+  (`labels=[0, 1]`) so its shape never collapses when a class is absent from
+  small or heavily drifted evaluation slices.
 - Synthetic metrics reflect the artificial label rule, not real-world accuracy.
 
 ## 4. Drift detection (`src/drift_detector.py`)

@@ -89,3 +89,27 @@ def test_bh_correction():
     assert len(adj) == 3
     assert (adj >= np.array([0.01, 0.04, 0.5])).all()
     assert (adj <= 1.0).all()
+
+
+def test_bh_exact_values_unsorted_input():
+    # Hand-computed: sorted p = [0.01, 0.04, 0.5], m = 3
+    # adj = [0.01*3/1, 0.04*3/2, 0.5*3/3] = [0.03, 0.06, 0.5]
+    adj = benjamini_hochberg(np.array([0.5, 0.01, 0.04]))
+    np.testing.assert_allclose(adj, [0.5, 0.03, 0.06], rtol=1e-9)
+
+
+def test_all_nan_column_raises():
+    ref = generate_reference_data(n_rows=100, seed=1)
+    inc = generate_incoming_data(scenario="normal", n_rows=100, seed=2)
+    inc["cpu_usage"] = np.nan
+    with pytest.raises(ValueError):
+        detect_drift(ref, inc)
+
+
+def test_one_sided_constant_column_no_crash():
+    ref = generate_reference_data(n_rows=100, seed=1)
+    inc = generate_incoming_data(scenario="normal", n_rows=100, seed=2)
+    ref["disk_usage"] = 55.0
+    out = detect_drift(ref, inc)
+    assert out["n_features"] == 5
+    assert "drifted" in out["results"].columns
