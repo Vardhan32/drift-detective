@@ -53,6 +53,7 @@ feature values in the same row.
   (`labels=[0, 1]`) so its shape never collapses when a class is absent from
   small or heavily drifted evaluation slices.
 - Synthetic metrics reflect the artificial label rule, not real-world accuracy.
+- The dashboard's feature ranking comes from scikit-learn's RandomForest `feature_importances_` (impurity-based, global importance). It is not SHAP and should not be described as per-customer or per-prediction explanations.
 
 ## 4. Drift detection (`src/drift_detector.py`)
 
