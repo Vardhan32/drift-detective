@@ -1,6 +1,6 @@
 # Drift Detective
 
-**An explainable ML model-monitoring dashboard (educational prototype).**
+**A Streamlit prototype for model-drift and performance checks (educational project).**
 
 Drift Detective shows what happens to a supervised classifier when incoming data
 drifts away from its training reference. It generates reproducible synthetic
@@ -18,7 +18,7 @@ and compares labelled performance — in an interactive Streamlit dashboard.
 - RandomForest risk classifier with stratified split, no leakage
 - Accuracy / precision / recall / F1 + confusion matrices, reference vs incoming
 - Per-feature KS drift tests, BH correction, Cohen's d, transparent flag rule
-- Plotly distribution overlays, feature importances, most-changed ranking
+- Plotly distribution overlays, RandomForest impurity-based feature-importance ranking, most-changed ranking
 - pytest suite covering generator, model, detector, evaluation
 - Runs locally on a laptop; no APIs, GPU, or cloud needed
 
@@ -133,6 +133,7 @@ pytest -v
 - A small adjusted p-value is evidence against "same distribution", not proof the
   model broke — confirm with the incoming accuracy panel.
 - Large samples flag tiny shifts; the |d| ≥ 0.2 gate keeps flags meaningful.
+- Feature importance is a global RandomForest impurity-based ranking; it is not SHAP and does not explain an individual prediction.
 - See `docs/methodology.md` for full assumptions and method details.
 
 ## Limitations
